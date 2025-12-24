@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Запись на ногти</title>
+  <title>Запись на ногти 💅</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -44,6 +44,7 @@
       border: none;
       margin-top: 25px;
       font-size: 16px;
+      cursor: pointer;
     }
     button:active {
       opacity: 0.9;
@@ -74,44 +75,39 @@
     <button onclick="send()">Записаться</button>
   </div>
 
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-  function send() {
-    // получаем элементы
-    const nameEl = document.getElementById("name");
-    const phoneEl = document.getElementById("phone");
-    const dateEl = document.getElementById("date");
-    const timeEl = document.getElementById("time");
+    function send() {
+      const nameEl = document.getElementById("name");
+      const phoneEl = document.getElementById("phone");
+      const dateEl = document.getElementById("date");
+      const timeEl = document.getElementById("time");
 
-    // получаем значения и обрезаем пробелы
-    const nameValue = nameEl.value.trim();
-    const phoneValue = phoneEl.value.trim();
-    const dateValue = dateEl.value;
-    const timeValue = timeEl.value;
+      const nameValue = nameEl.value.trim();
+      const phoneValue = phoneEl.value.trim();
+      const dateValue = dateEl.value;
+      const timeValue = timeEl.value;
 
-    // проверка: если что-то пустое
-    if (!nameValue) { alert("Введите имя"); nameEl.focus(); return; }
-    if (!phoneValue) { alert("Введите телефон"); phoneEl.focus(); return; }
-    if (!dateValue) { alert("Выберите дату"); dateEl.focus(); return; }
-    if (!timeValue) { alert("Выберите время"); timeEl.focus(); return; }
+      if (!nameValue) { alert("Введите имя"); nameEl.focus(); return; }
+      if (!phoneValue) { alert("Введите телефон"); phoneEl.focus(); return; }
+      if (!dateValue) { alert("Выберите дату"); dateEl.focus(); return; }
+      if (!timeValue) { alert("Выберите время"); timeEl.focus(); return; }
 
-    const data = {
-      name: nameValue,
-      phone: phoneValue,
-      date: dateValue,
-      time: timeValue
-    };
+      const data = {
+        name: nameValue,
+        phone: phoneValue,
+        date: dateValue,
+        time: timeValue
+      };
 
-    // отправляем данные боту
-    tg.sendData(JSON.stringify(data));
+      tg.sendData(JSON.stringify(data));
 
-    // дополнительное подтверждение для пользователя
-    alert("Запись отправлена 💖");
-  }
-</script>
+      alert("Запись отправлена 💖");
+      // Можно очистить форму, если хочешь
+      // nameEl.value = ""; phoneEl.value = ""; dateEl.value = ""; timeEl.value = "";
+    }
+  </script>
 </body>
 </html>
-
-
