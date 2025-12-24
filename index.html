@@ -1,113 +1,49 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Запись на ногти 💅</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Запись</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #fff6f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      color: #d96c8a;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 5px;
-      border-radius: 12px;
-      border: 1px solid #eee;
-      font-size: 15px;
-    }
-    button {
-      background: #f3a1b3;
-      color: white;
-      border: none;
-      margin-top: 25px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:active {
-      opacity: 0.9;
-    }
+    body { font-family: Arial, sans-serif; padding: 16px; }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; }
+    #status { margin-top: 10px; }
   </style>
 </head>
-
 <body>
-  <h1>Запись на ногти 💅</h1>
+  <h2>Запись</h2>
 
-  <div class="card">
-    <label>Имя</label>
-    <input id="name" placeholder="Ваше имя">
+  <input id="name" placeholder="Имя" />
+  <input id="phone" placeholder="Телефон" />
+  <input id="date" type="date" />
+  <input id="time" type="time" />
 
-    <label>Телефон</label>
-    <input id="phone" placeholder="+7...">
-
-    <label>Дата</label>
-    <input type="date" id="date">
-
-    <label>Время</label>
-    <select id="time">
-      <option value="">Выберите время</option>
-      <option value="14:00">14:00 – 16:00</option>
-      <option value="16:00">16:00 – 18:00</option>
-    </select>
-
-    <button onclick="send()">Записаться</button>
-  </div>
+  <button id="sendBtn">Записаться</button>
+  <div id="status"></div>
 
   <script>
     const tg = window.Telegram.WebApp;
-    tg.expand();
 
-    function send() {
-      const nameEl = document.getElementById("name");
-      const phoneEl = document.getElementById("phone");
-      const dateEl = document.getElementById("date");
-      const timeEl = document.getElementById("time");
+    tg.ready();
 
-      const nameValue = nameEl.value.trim();
-      const phoneValue = phoneEl.value.trim();
-      const dateValue = dateEl.value;
-      const timeValue = timeEl.value;
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
 
-      if (!nameValue) { alert("Введите имя"); nameEl.focus(); return; }
-      if (!phoneValue) { alert("Введите телефон"); phoneEl.focus(); return; }
-      if (!dateValue) { alert("Выберите дату"); dateEl.focus(); return; }
-      if (!timeValue) { alert("Выберите время"); timeEl.focus(); return; }
+      if (!name || !phone || !date || !time) {
+        document.getElementById("status").innerText = "Заполните все поля";
+        return;
+      }
 
-      const data = {
-        name: nameValue,
-        phone: phoneValue,
-        date: dateValue,
-        time: timeValue
-      };
+      const data = { name, phone, date, time };
 
+      // ✅ отправляем в бота и закрываем WebApp
       tg.sendData(JSON.stringify(data));
-
-      alert("Запись отправлена 💖");
-      // Можно очистить форму, если хочешь
-      // nameEl.value = ""; phoneEl.value = ""; dateEl.value = ""; timeEl.value = "";
-    }
+      tg.close();
+    });
   </script>
 </body>
 </html>
