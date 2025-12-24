@@ -74,25 +74,31 @@
     <button onclick="send()">Записаться</button>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();
 
-    function send() {
-      const data = {
-        name: name.value,
-        phone: phone.value,
-        date: date.value,
-        time: time.value
-      };
+  function send() {
+    const nameValue = document.getElementById("name").value.trim();
+    const phoneValue = document.getElementById("phone").value.trim();
+    const dateValue = document.getElementById("date").value;
+    const timeValue = document.getElementById("time").value;
 
-      if (!data.name || !data.phone || !data.date || !data.time) {
-        alert("Пожалуйста, заполните все поля");
-        return;
-      }
-
-      tg.sendData(JSON.stringify(data));
+    if (!nameValue || !phoneValue || !dateValue || !timeValue) {
+      alert("Пожалуйста, заполните все поля");
+      return;
     }
-  </script>
+
+    const data = {
+      name: nameValue,
+      phone: phoneValue,
+      date: dateValue,
+      time: timeValue
+    };
+
+    tg.sendData(JSON.stringify(data));
+  }
+</script>
 </body>
 </html>
+
