@@ -7,8 +7,8 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 16px; }
-    input, button { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; }
-    #status { margin-top: 10px; }
+    input { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; }
+    .hint { color: #666; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -19,30 +19,41 @@
   <input id="date" type="date" />
   <input id="time" type="time" />
 
-  <button id="sendBtn">Записаться</button>
-  <div id="status"></div>
+  <div class="hint">Нажмите кнопку Telegram внизу «Отправить запись»</div>
 
   <script>
     const tg = window.Telegram.WebApp;
-
     tg.ready();
 
-    document.getElementById("sendBtn").addEventListener("click", () => {
+    // Надёжный способ: MainButton
+    tg.MainButton.setText("Отправить запись");
+    tg.MainButton.show();
+
+    function collectData() {
       const name = document.getElementById("name").value.trim();
       const phone = document.getElementById("phone").value.trim();
       const date = document.getElementById("date").value;
       const time = document.getElementById("time").value;
 
-      if (!name || !phone || !date || !time) {
-        document.getElementById("status").innerText = "Заполните все поля";
+      if (!name || !phone || !date || !time) return null;
+      return { name, phone, date, time };
+    }
+
+    tg.onEvent("mainButtonClicked", () => {
+      const data = collectData();
+      if (!data) {
+        tg.showAlert("Заполните все поля");
         return;
       }
 
-      const data = { name, phone, date, time };
+      try {
+        tg.sendData(JSON.stringify(data));
 
-      // ✅ отправляем в бота и закрываем WebApp
-      tg.sendData(JSON.stringify(data));
-      tg.close();
+        // ✅ даём Telegram время отправить апдейт
+        setTimeout(() => tg.close(), 250);
+      } catch (e) {
+        tg.showAlert("Ошибка отправки данных");
+      }
     });
   </script>
 </body>
