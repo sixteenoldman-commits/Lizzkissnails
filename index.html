@@ -2,57 +2,551 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Запись</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MastApp</title>
+  <!-- Telegram WebApp SDK: можно оставить подключенным или подключать динамически в JS -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 16px; }
-    input { width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; }
-    .hint { color: #666; font-size: 14px; }
+    /* ===== Базовые переменные темы ===== */
+    :root {
+      --bg: #0c0f14;
+      --bg-soft: #11151c;
+      --card: #141a22;
+      --card-2: #121720;
+      --border: #1e2531;
+      --text: #e8eef7;
+      --muted: #94a3b8;
+      --accent: #3aa0ff;
+      --accent-soft: rgba(58, 160, 255, 0.18);
+      --glow: rgba(58, 160, 255, 0.35);
+      --success: #45d48a;
+    }
+
+    /* ===== Глобальные стили ===== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top, #111827, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ===== Контейнер приложения ===== */
+    .app {
+      width: min(420px, 100%);
+      padding: 18px 16px 80px;
+      position: relative;
+    }
+
+    /* ===== Заголовок ===== */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* ===== Карточки ===== */
+    .card-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, var(--card), var(--card-2));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--glow);
+      border-color: var(--accent);
+    }
+
+    .card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--accent);
+      border: 1px solid rgba(58, 160, 255, 0.3);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .chip {
+      background: rgba(58, 160, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(58, 160, 255, 0.3);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ===== Секции ===== */
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-left: 6px;
+    }
+
+    .sub-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    /* ===== Панель нижнего статуса ===== */
+    .footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(12, 15, 20, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 10px 16px 14px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .bot-status {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bot-status span {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ===== Модальное окно ===== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 12, 0.68);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 20;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      width: min(360px, 100%);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .modal-actions {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .button {
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    /* ===== Адаптив ===== */
+    @media (max-width: 480px) {
+      .title {
+        font-size: 24px;
+      }
+
+      .card {
+        padding: 12px 14px;
+      }
+
+      .icon {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Запись</h2>
+  <main class="app">
+    <!-- Заголовок приложения -->
+    <header class="header">
+      <div class="title">MastApp</div>
+      <div class="status-dot" aria-label="online"></div>
+    </header>
 
-  <input id="name" placeholder="Имя" />
-  <input id="phone" placeholder="Телефон" />
-  <input id="date" type="date" />
-  <input id="time" type="time" />
+    <!-- Основные блоки -->
+    <section class="card-grid" aria-label="Основные блоки">
+      <article class="card active" data-section="records">
+        <div class="card-left">
+          <div class="icon">📝</div>
+          <div>
+            <div class="card-title">Записи</div>
+            <div class="card-subtitle">3 новых заявки</div>
+          </div>
+        </div>
+        <span class="chip">Активно</span>
+      </article>
 
-  <div class="hint">Нажмите кнопку Telegram внизу «Отправить запись»</div>
+      <article class="card" data-section="profile">
+        <div class="card-left">
+          <div class="icon">👤</div>
+          <div>
+            <div class="card-title">Профиль</div>
+            <div class="card-subtitle">Персональные данные</div>
+          </div>
+        </div>
+        <span class="chip">Настроить</span>
+      </article>
+
+      <article class="card" data-section="services">
+        <div class="card-left">
+          <div class="icon">💎</div>
+          <div>
+            <div class="card-title">Услуги</div>
+            <div class="card-subtitle">7 активных услуг</div>
+          </div>
+        </div>
+        <span class="chip">Редактировать</span>
+      </article>
+
+      <article class="card" data-section="schedule">
+        <div class="card-left">
+          <div class="icon">📅</div>
+          <div>
+            <div class="card-title">График</div>
+            <div class="card-subtitle">Сегодня 4 записи</div>
+          </div>
+        </div>
+        <span class="chip">Открыть</span>
+      </article>
+
+      <article class="card" data-section="flow">
+        <div class="card-left">
+          <div class="icon">⚡</div>
+          <div>
+            <div class="card-title">Процесс записи</div>
+            <div class="card-subtitle">Воронка заявок</div>
+          </div>
+        </div>
+        <span class="chip">Смотреть</span>
+      </article>
+    </section>
+
+    <!-- Раздел Работа -->
+    <section class="section" aria-label="Работа">
+      <div class="section-title">Работа</div>
+      <div class="sub-grid">
+        <article class="card" data-section="stats">
+          <div class="card-left">
+            <div class="icon">📊</div>
+            <div>
+              <div class="card-title">Статистика</div>
+              <div class="card-subtitle">За неделю +18%</div>
+            </div>
+          </div>
+          <span class="chip">Отчет</span>
+        </article>
+
+        <article class="card" data-section="notifications">
+          <div class="card-left">
+            <div class="icon">🔔</div>
+            <div>
+              <div class="card-title">Уведомления</div>
+              <div class="card-subtitle">2 новых события</div>
+            </div>
+          </div>
+          <span class="chip">Открыть</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- Раздел Ссылки -->
+    <section class="section" aria-label="Ссылки">
+      <div class="section-title">Ссылки</div>
+      <div class="sub-grid">
+        <article class="card" data-section="my-link">
+          <div class="card-left">
+            <div class="icon">🔗</div>
+            <div>
+              <div class="card-title">Моя ссылка</div>
+              <div class="card-subtitle">mastapp.me/anna</div>
+            </div>
+          </div>
+          <span class="chip">Скопировать</span>
+        </article>
+
+        <article class="card" data-section="ref-link">
+          <div class="card-left">
+            <div class="icon">🎁</div>
+            <div>
+              <div class="card-title">Реф. ссылка</div>
+              <div class="card-subtitle">+5% к доходу</div>
+            </div>
+          </div>
+          <span class="chip">Поделиться</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- Раздел Доступ и оплата -->
+    <section class="section" aria-label="Доступ и оплата">
+      <div class="section-title">Доступ и оплата</div>
+      <div class="sub-grid">
+        <article class="card" data-section="subscription">
+          <div class="card-left">
+            <div class="icon">💳</div>
+            <div>
+              <div class="card-title">Подписка</div>
+              <div class="card-subtitle">Тариф «Про» до 01.06</div>
+            </div>
+          </div>
+          <span class="chip">Управлять</span>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- Нижний статус с именем бота -->
+  <footer class="footer">
+    <div class="bot-status">
+      <span>mastapp_bot</span>
+      <span>•</span>
+      <span>WebApp Ready</span>
+    </div>
+  </footer>
+
+  <!-- Модальное окно для демонстрации кликов -->
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div class="modal-title" id="modal-title">Раздел</div>
+      <div class="modal-text" id="modal-text">
+        Здесь появится описание выбранного раздела.
+      </div>
+      <div class="modal-actions">
+        <button class="button secondary" id="close-modal">Закрыть</button>
+        <button class="button" id="action-modal">Действие</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
+    // ===== Инициализация Telegram WebApp =====
+    const tg = window.Telegram?.WebApp;
 
-    // Надёжный способ: MainButton
-    tg.MainButton.setText("Отправить запись");
-    tg.MainButton.show();
-
-    function collectData() {
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const date = document.getElementById("date").value;
-      const time = document.getElementById("time").value;
-
-      if (!name || !phone || !date || !time) return null;
-      return { name, phone, date, time };
+    // Проверяем доступность SDK и настраиваем базовые параметры
+    // BOT_TOKEN храните на сервере и обращайтесь к API через ваш backend, не вставляйте токен в клиентский код.
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor("#0c0f14");
+      tg.setBackgroundColor("#0c0f14");
     }
 
-    tg.onEvent("mainButtonClicked", () => {
-      const data = collectData();
-      if (!data) {
-        tg.showAlert("Заполните все поля");
-        return;
+    // ===== Mock-данные для разделов =====
+    const mockData = {
+      records: {
+        title: "Записи",
+        text: "Показываем свежие заявки клиентов. Тут можно подтвердить или перенести запись.",
+        action: "Открыть список"
+      },
+      profile: {
+        title: "Профиль",
+        text: "Обновите фото, описание и контакты для клиентов.",
+        action: "Редактировать"
+      },
+      services: {
+        title: "Услуги",
+        text: "Настройте цены и длительность процедур.",
+        action: "Управлять"
+      },
+      schedule: {
+        title: "График",
+        text: "Просматривайте календарь и блокируйте свободные окна.",
+        action: "Перейти"
+      },
+      flow: {
+        title: "Процесс записи",
+        text: "Воронка заявок с этапами: новая → подтверждена → завершена.",
+        action: "Посмотреть"
+      },
+      stats: {
+        title: "Статистика",
+        text: "Сводка по доходам, топ-услугам и конверсии.",
+        action: "Скачать отчет"
+      },
+      notifications: {
+        title: "Уведомления",
+        text: "Пуши о новых записях и изменениях клиентов.",
+        action: "Открыть"
+      },
+      "my-link": {
+        title: "Моя ссылка",
+        text: "Скопируйте ссылку на страницу записи для клиентов.",
+        action: "Скопировать"
+      },
+      "ref-link": {
+        title: "Реф. ссылка",
+        text: "Поделитесь ссылкой и получайте бонусы.",
+        action: "Поделиться"
+      },
+      subscription: {
+        title: "Подписка",
+        text: "Управляйте тарифом и платежными методами.",
+        action: "Открыть"
       }
+    };
 
-      try {
-        tg.sendData(JSON.stringify(data));
+    const cards = document.querySelectorAll(".card");
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalText = document.getElementById("modal-text");
+    const actionButton = document.getElementById("action-modal");
+    const closeButton = document.getElementById("close-modal");
 
-        // ✅ даём Telegram время отправить апдейт
-        setTimeout(() => tg.close(), 250);
-      } catch (e) {
-        tg.showAlert("Ошибка отправки данных");
+    // ===== Обработка кликов по карточкам =====
+    cards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const section = card.dataset.section;
+        const data = mockData[section];
+
+        cards.forEach((item) => item.classList.remove("active"));
+        card.classList.add("active");
+
+        if (data) {
+          modalTitle.textContent = data.title;
+          modalText.textContent = data.text;
+          actionButton.textContent = data.action;
+          modal.classList.add("active");
+        }
+
+        // Пример отправки данных в Telegram (можно заменить реальной логикой)
+        if (tg) {
+          tg.HapticFeedback?.impactOccurred("light");
+        }
+      });
+    });
+
+    // ===== Модальное окно =====
+    function closeModal() {
+      modal.classList.remove("active");
+    }
+
+    closeButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    actionButton.addEventListener("click", () => {
+      if (tg) {
+        tg.showPopup({
+          title: "Демо действие",
+          message: "Здесь можно запускать реальную функцию Telegram WebApp API.",
+          buttons: [{ type: "ok" }]
+        });
+      } else {
+        alert("Демо действие: интеграция с Telegram WebApp API.");
       }
     });
   </script>
